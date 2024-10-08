@@ -2,6 +2,7 @@ from typing import Any
 from cryptography.fernet import Fernet
 import os
 import logging
+import tkinter as tk
 
 class PasswordManager:
     """
@@ -83,6 +84,9 @@ class PasswordManager:
         ----
         path (str): The file path where the key is stored.
         """
+        if path is None:
+            print("\n!! Path cannot be empty !!\n")
+            return
         with open(path, 'rb') as f:
             self.key = f.read()
         print("-- Key loaded successfully --")
@@ -164,13 +168,15 @@ class PasswordManager:
         return self.password_dict[site]
 
 def get_user_input(prompt):
-    user_input = input(prompt)
-    if user_input.lower() == 'q':
-        print("Bye")
-        exit()
-    elif user_input.lower() == 'b':
-        return None
-    return user_input
+    while True:
+        user_input = input(prompt)
+        if user_input.lower() == 'q':
+            print("Bye")
+            exit()
+        elif user_input == "":
+            return None
+        else:
+            return user_input
 
 class PasswordManagerApp:
     def __init__(self):
@@ -185,38 +191,63 @@ class PasswordManagerApp:
     def run(self):
         while True:
             self.states[self.current_state]()
+    
+    def go_back(self):
+        if self.current_state == "password_management":
+            self.current_state = "password_file"
+        elif self.current_state == "password_file":
+            self.current_state = "key"
 
     def create_or_load_key(self):
         # Step 1: Create or load key
         while True:
             print("""Create or load encryption key:
+                  
             (1) Create a new key
             (2) Use an existing key
-            (q) Quit
             (b) Back
-            """)
+            (q) Quit
+                        """)
             choice = get_user_input("Enter your choice: ")
 
             if choice is None:
                 continue
             match choice:
+                case "b":
+                    self.go_back()
+                    continue
                 case "1":
-                    path = input("Enter path of desired save location: ")
-                    self.pm.create_key(path)
-                    break
+                    print("""
+            (1) Generate random key
+            (2) Manually type key
+            (b) Back
+            (q) Quit
+                        """)
+                    choice_2 = get_user_input("Enter your choice: ")
+                    match choice_2:
+                        case "1":
+                            path = get_user_input("Enter path of desired key save location: ")
+                            self.pm.create_key(path)
+                            break
+                        case "2":
+                            key = get_user_input("Type the desired key: ")
+                            self.pm.key = key
+                            break
                 case "2":
                     print("""
             (1) Load key file
             (2) Manually enter key
+            (b) Back
+            (q) Quit
                         """)
-                    choice_2 = input("Enter your choice: ")
+                    choice_2 = get_user_input("Enter your choice: ")
                     match choice_2:
                         case "1":
-                            path = input("Enter path: ")
+                            path = get_user_input("Enter path to key file: ")
                             self.pm.load_key(path)
                             break
                         case "2":
-                            key = input("Enter the key: ")
+                            key = get_user_input("Enter the key: ")
                             self.pm.manually_load_key(key)
                             break
                 case _:
@@ -227,23 +258,27 @@ class PasswordManagerApp:
         # Step 2: Create or load password file
         while True:
             print("""Create or load password file:
+                  
             (1) Create a new password file
             (2) Load existing password file
-            (q) Quit
             (b) Back
+            (q) Quit
             """)
             choice = get_user_input("Enter your choice: ")
 
             if choice is None:
                 continue
             match choice:
+                case "b":
+                    self.go_back()
+                    break
                 case "1":
-                    path = input("Enter path: ")
-                    pm.create_password_file(path)
+                    path = get_user_input("Enter path to create password file: ")
+                    self.pm.create_password_file(path)
                     break
                 case "2":
-                    path = input("Enter path: ")
-                    pm.load_password_file(path)
+                    path = get_user_input("Enter path to load password file: ")
+                    self.pm.load_password_file(path)
                     break
                 case _:
                     print("Invalid choice!")
@@ -253,23 +288,27 @@ class PasswordManagerApp:
         # Step 3: Add or get password
         while True:
             print("""Manage passwords:
+                  
             (1) Add a new password
             (2) Get a password
-            (q) Quit
             (b) Back
+            (q) Quit
             """)
             choice = get_user_input("Enter your choice: ")
 
             if choice is None:
                 continue
             match choice:
+                case "b":
+                    self.go_back()
+                    break
                 case "1":
-                    site = input("Enter the site: ")
-                    password = input("Enter the password: ")
-                    pm.add_password(site, password)
+                    site = get_user_input("Enter the site: ")
+                    password = get_user_input("Enter the password: ")
+                    self.pm.add_password(site, password)
                 case "2":
-                    site = input("What site do you want: ")
-                    print(f"Password for {site} is {pm.get_password(site)}")
+                    site = get_user_input("What site do you want: ")
+                    print(f"Password for {site} is {self.pm.get_password(site)}")
                 case _:
                     print("Invalid choice!")
 
