@@ -1,5 +1,7 @@
 from typing import Any
 from cryptography.fernet import Fernet
+import os
+import logging
 
 class PasswordManager:
     """
@@ -47,9 +49,31 @@ class PasswordManager:
         ----
         path (str): The file path where the key will be saved.
         """
-        self.key = Fernet.generate_key()
-        with open(path, 'wb') as f:
-            f.write(self.key)  # Corrected create_key to key
+        if not path:
+            path = os.path.join(os.getcwd(), 'default_key.key')
+            logging.info(f"Using default key path: {path}")
+        try:
+            # Generate key
+            self.key = Fernet.generate_key()
+            
+            # Ensure directory exists
+            directory = os.path.dirname(path)
+            os.makedirs(directory, exist_ok=True)
+            
+            # Save key to file
+            with open(path, 'wb') as f:
+                f.write(self.key)
+            
+            logging.info(f"Encryption key saved to {path}")
+        
+        except PermissionError:
+            logging.error(f"Permission denied: Unable to save key to {path}")
+        
+        except OSError as e:
+            logging.error(f"Error saving key to {path}: {e}")
+        
+        except Exception as e:
+            logging.error(f"Unexpected error generating/saving key: {e}")
 
     def load_key(self, path: str) -> None:
         """
@@ -61,8 +85,20 @@ class PasswordManager:
         """
         with open(path, 'rb') as f:
             self.key = f.read()
+        print("-- Key loaded successfully --")
 
-    def create_password_file(self, path: str, initial_values: dict = None) -> None:
+    def manually_load_key(self, key: str) -> None:
+        """
+        Lets user manually input their encryption key.
+
+        Args:
+        ----
+        key (str): The users encryption key.
+        """
+        self.key = key
+        print("-- Key input successfully --")
+
+    def create_password_file(self, path: str) -> None:
         """
         Creates a new password file.
 
@@ -71,12 +107,15 @@ class PasswordManager:
         path (str): The file path where passwords will be stored.
         initial_values (dict, optional): Initial site-password pairs. Defaults to None.
         """
-        self.password_file = path
-
-        if initial_values is not None:
-            for key, value in initial_values.items():
-                self.add_password(key, value)
-
+        if path:
+            self.password_file = path
+        else:
+            path = os.path.join(os.getcwd(), 'passwords.pass')
+            self.password_file = path
+        with open(path, "w") as f:
+            pass
+        print("-- Password file created --")
+            
     def load_password_file(self, path: str) -> None:
         """
         Loads existing passwords from a file.
@@ -91,6 +130,7 @@ class PasswordManager:
             for line in f:
                 site, encrypted = line.split(":")
                 self.password_dict[site] = Fernet(self.key).decrypt(encrypted.encode()).decode()
+        print("-- Password file loaded --")
 
     def add_password(self, site: str, password: str) -> None:
         """
@@ -101,12 +141,13 @@ class PasswordManager:
         site (str): The site associated with the password.
         password (str): The password to be stored.
         """
-        self.password_dict[site] = password
 
         if self.password_file is not None:
             with open(self.password_file, 'a+') as f:
                 encrypted = Fernet(self.key).encrypt(password.encode())
                 f.write(site + ":" + encrypted.decode() + "\n")
+        self.password_dict[site] = password
+        print("-- Password added --")
 
     def get_password(self, site: str) -> str:
         """
@@ -122,6 +163,15 @@ class PasswordManager:
         """
         return self.password_dict[site]
     
+def get_user_input(prompt):
+    user_input = input(prompt)
+    if user_input.lower() == 'q':
+        print("Bye")
+        exit()
+    elif user_input.lower() == 'b':
+        return None
+    return user_input
+    
 def main():
 
     password = {}
@@ -129,28 +179,40 @@ def main():
 
     print("""What do you want to do?
     (1) Create a new key
-    (2) Load an existing key
+    (2) Use an existing key
     (3) Create a new password file
     (4) Load existing password file
     (5) Add a new password
     (6) Get a password
     (q) Quit          
     """)
+    
+    while True:
+        choice = get_user_input("Enter your choice: ")
 
-    done = False
+        if choice is None:
+            continue
 
-    while not done:
-        choice = input("Enter your choice: ")
         match choice:
             case "1":
                 path = input("Enter path: ")
                 pm.create_key(path)
             case "2":
-                path = input("Enter path: ")
-                pm.load_key(path)
+                print("""
+    (1) Load key file
+    (2) Manually enter key
+                      """)
+                choice_2 = input("Enter your choice: ")
+                match choice_2:
+                    case "1":
+                        path = input("Enter path: ")
+                        pm.load_key(path)
+                    case "2":
+                        key = input("Enter the key: ")
+                        pm.manually_load_key(key)
             case "3":
                 path = input("Enter path: ")
-                pm.create_password_file(path, password)
+                pm.create_password_file(path)
             case "4":
                 path = input("Enter path: ")
                 pm.load_password_file(path)
