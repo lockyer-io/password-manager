@@ -2,7 +2,7 @@ from typing import Any
 from cryptography.fernet import Fernet
 import os
 import logging
-import tkinter as tk
+import customtkinter as ctk
 
 class PasswordManager:
     """
@@ -312,9 +312,24 @@ class PasswordManagerApp:
                 case _:
                     print("Invalid choice!")
 
+class PasswordManagerGUI:
+    def __init__(self):
+        ctk.set_appearance_mode("Dark")
+        ctk.set_default_color_theme("blue")
+
+        self.pm = PasswordManager()
+        self.root = ctk.CTk()
+        self.root.title("Password Manager")
+        self.root.geometry("500x500")
+
+        # Create widgets
+        self.title_label = ctk.CTkLabel(self.root, text="Password Manager", font=("Arial", 24))
+        self.key_button = ctk.CTkButton(self.root, text="Create/Load Key", command=self.create_load_key)
+        self.password_file_button = ctk.CTkButton(self.root, text="Create/Load Password File", command=self.create_load_password_file)
+
 def main():
-    app = PasswordManagerApp()
-    app.run()
+    gui = PasswordManagerGUI()
+    gui.run()
 
 if __name__ == "__main__":
     main()
