@@ -1,4 +1,4 @@
-Introduction
+##Introduction
 
 The Password Manager is a Python application that helps manage your passwords securely using encryption. It provides functionalities to create or load encryption keys, create or load password files, and securely store and retrieve passwords for various websites. The application also has a GUI version built using the customtkinter library for a modern and intuitive interface.
 
@@ -19,7 +19,7 @@ You can install the required dependencies using pip:
 pip install cryptography customtkinter
 ```
 
-Getting Started
+##Getting Started
 
 Command-Line Interface (CLI)
 
@@ -37,7 +37,7 @@ python password_manager_gui.py
 ```
 The GUI will allow you to interact with the Password Manager using buttons and dialogs, making the process more intuitive.
 
-Usage
+##Usage
 
 CLI Example
 ```bash
@@ -90,7 +90,7 @@ GUI Example
 	2.	Click “Create/Load Password File” to create or load your password file.
 	3.	Use the buttons in the password management section to add new passwords or retrieve existing ones.
 
-Methods
+##Methods
 
 PasswordManager Class
 	•	create_key(path: str): Generates and saves a new encryption key at the specified file path.
@@ -108,12 +108,12 @@ PasswordManagerApp Class (CLI Interface)
 PasswordManagerGUI Class (GUI Interface)
 	•	Provides an interactive GUI interface using customtkinter to manage passwords.
 
-Error Handling
+##Error Handling
 	•	Permission Errors: If there are permission issues when saving the key or password file, an appropriate error message will be shown.
 	•	File I/O Errors: Errors related to loading or saving files will be handled and logged.
 	•	Invalid Inputs: Invalid choices will be caught and prompt the user to enter a valid choice.
 
-Conclusion
+##Conclusion
 
 This Password Manager helps you securely manage your passwords by providing encryption and offering both CLI and GUI interfaces for ease of use. Whether you prefer a text-based interface or a modern graphical interface, this tool provides a comprehensive solution for password management.
 
